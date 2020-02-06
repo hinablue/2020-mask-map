@@ -1,24 +1,19 @@
-# mask-map
+# 2020 Mask Map
 
-## Project setup
+### 專案設定
 ```
 yarn install
 ```
 
-### Compiles and hot-reloads for development
+### 本機需要有 PHP 執行環境
+
+### 用 build --watch
 ```
-yarn serve
+yarn build --watch
 ```
 
-### Compiles and minifies for production
+### 利用 PHP -S 來啟動服務
 ```
-yarn build
-```
-
-### Lints and fixes files
-```
-yarn lint
+php -S 0.0.0.0:8080 -t ./dist
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
