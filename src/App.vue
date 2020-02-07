@@ -186,6 +186,34 @@ export default {
       this.map.setCenter(this.currentPosition)
       this.map.addControl(new mapboxgl.NavigationControl())
 
+      const CatIconLayer = new MapboxLayer(
+        {
+          id: 'icon-layer',
+          type: IconLayer,
+          data: DRUG_STORES.features,
+          pickable: true,
+          wrapLongitude: true,
+          sizeUnits: 'meters',
+          sizeScale: 2,
+          sizeMinPixels: 16,
+          getSize: 32,
+          getIcon: d => ({
+            url: CatIcon,
+            x: 0,
+            y: 0,
+            width: 128,
+            height: 128,
+            anchorY: 128
+          }),
+          getPosition: d => d.geometry.coordinates,
+          onClick: info => {
+            this.dragStoreModal(info.object)
+          }
+        }
+      )
+
+      this.map.addLayer(CatIconLayer)
+
       this.map.addLayer(
         new MapboxLayer(
           {
@@ -215,7 +243,6 @@ export default {
               }
               return COLOR_RANGE[0]
             },
-            getPolygonOffset: layerIndex => [0, -layerIndex * 100],
             getElevation: d => {
               return (d.properties.total / 1000)
             },
@@ -223,39 +250,8 @@ export default {
               this.dragStoreModal(info.object)
             }
           }
-        )
-      )
-
-      this.map.addLayer(
-        new MapboxLayer(
-          {
-            id: 'icon-layer',
-            type: IconLayer,
-            data: DRUG_STORES.features,
-            iconAtlas: CatIcon,
-            iconMapping: {
-              marker: {
-                x: 0,
-                y: 0,
-                width: 128,
-                height: 128,
-                anchorY: 64
-              }
-            },
-            pickable: true,
-            wrapLongitude: true,
-            sizeUnits: 'meters',
-            sizeScale: 2,
-            sizeMinPixels: 16,
-            getSize: 32,
-            getIcon: d => 'marker',
-            getPosition: d => d.geometry.coordinates,
-            getPolygonOffset: layerIndex => [0, -layerIndex * 50],
-            onClick: info => {
-              this.dragStoreModal(info.object)
-            }
-          }
-        )
+        ),
+        'icon-layer'
       )
 
       this.hexagonLayer = new MapboxLayer(
@@ -267,8 +263,7 @@ export default {
           elevationRange: [0, 100],
           elevationScale: 500,
           extruded: true,
-          getPosition: d => d.geometry.coordinates,
-          getPolygonOffset: layerIndex => [0, -layerIndex]
+          getPosition: d => d.geometry.coordinates
         }
       )
 
