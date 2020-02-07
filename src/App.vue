@@ -364,7 +364,7 @@ body {
   top: 0;
   left: 0;
   padding: 10px;
-  z-index: 9999999;
+  z-index: 1000;
 }
 
 .goto-my-location,
