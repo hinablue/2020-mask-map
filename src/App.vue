@@ -8,7 +8,7 @@
       </div>
     </div>
     <div class="modal fade" id="drugStoreModal" tabindex="-1" role="dialog" aria-labelledby="drugStoreModalTitle" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-dialog" role="document">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="drugStoreModalTitle" v-text="drugStore.name"></h5>
@@ -82,12 +82,12 @@ const INITIAL_VIEW_STATE = {
 }
 
 const COLOR_RANGE = [
-  [1, 152, 189, 150],
-  [73, 227, 206, 150],
-  [216, 254, 181, 150],
-  [254, 237, 177, 150],
+  [209, 55, 78, 150],
   [254, 173, 84, 150],
-  [209, 55, 78, 150]
+  [254, 237, 177, 150],
+  [216, 254, 181, 150],
+  [73, 227, 206, 150],
+  [1, 152, 189, 150]
 ]
 
 let DRUG_STORES = {}
@@ -137,9 +137,78 @@ export default {
         )
       })
     },
+    dragStoreModal (data) {
+      const store = data.properties
+      this.drugStore = {
+        name: store.name,
+        phone: store.phone,
+        address: store.address,
+        maskChild: store.mask_child,
+        maskAdult: store.mask_adult,
+        updated: store.updated
+      }
+      window.jQuery('#drugStoreModal').modal({
+        backdrop: false
+      })
+
+      this.currentPosition = data.geometry.coordinates
+      this.map.setCenter(this.currentPosition)
+      this.map.flyTo(
+        {
+          center: this.currentPosition,
+          zoom: 15,
+          speed: 0.5,
+          curve: 1,
+          easing: function (t) {
+            return t
+          },
+          essential: true
+        }
+      )
+    },
     mapLoaded () {
       this.map.setCenter(this.currentPosition)
       this.map.addControl(new mapboxgl.NavigationControl())
+
+      this.map.addLayer(
+        new MapboxLayer(
+          {
+            id: 'column-layer',
+            type: ColumnLayer,
+            data: DRUG_STORES.features,
+            diskResolution: 12,
+            radius: 35,
+            elevationScale: 2500,
+            pickable: true,
+            getPosition: d => d.geometry.coordinates,
+            getFillColor: d => {
+              if (d.properties.total >= 250) {
+                return COLOR_RANGE[5]
+              }
+              if (d.properties.total >= 200) {
+                return COLOR_RANGE[4]
+              }
+              if (d.properties.total >= 100) {
+                return COLOR_RANGE[3]
+              }
+              if (d.properties.total >= 50) {
+                return COLOR_RANGE[2]
+              }
+              if (d.properties.total >= 10) {
+                return COLOR_RANGE[1]
+              }
+              return COLOR_RANGE[0]
+            },
+            getPolygonOffset: layerIndex => [0, -layerIndex * 100],
+            getElevation: d => {
+              return (d.properties.total / 1000)
+            },
+            onClick: info => {
+              this.dragStoreModal(info.object)
+            }
+          }
+        )
+      )
 
       this.map.addLayer(
         new MapboxLayer(
@@ -154,84 +223,23 @@ export default {
                 y: 0,
                 width: 128,
                 height: 128,
-                anchorY: 128
+                anchorY: 64
               }
             },
             pickable: true,
             wrapLongitude: true,
             sizeUnits: 'meters',
             sizeScale: 2,
-            sizeMinPixels: 8,
+            sizeMinPixels: 16,
+            getSize: 32,
             getIcon: d => 'marker',
             getPosition: d => d.geometry.coordinates,
-            getSize: 42,
+            getPolygonOffset: layerIndex => [0, -layerIndex * 50],
             onClick: info => {
-              const store = info.object.properties
-              this.drugStore = {
-                name: store.name,
-                phone: store.phone,
-                address: store.address,
-                maskChild: store.mask_child,
-                maskAdult: store.mask_adult,
-                updated: store.updated
-              }
-              window.jQuery('#drugStoreModal').modal({
-                backdrop: false
-              })
-
-              this.currentPosition = info.object.geometry.coordinates
-              this.map.setCenter(this.currentPosition)
-              this.map.flyTo(
-                {
-                  center: this.currentPosition,
-                  zoom: 15,
-                  speed: 0.5,
-                  curve: 1,
-                  easing: function (t) {
-                    return t
-                  },
-                  essential: true
-                }
-              )
+              this.dragStoreModal(info.object)
             }
           }
         )
-      )
-
-      this.map.addLayer(
-        new MapboxLayer(
-          {
-            id: 'column-layer',
-            type: ColumnLayer,
-            data: DRUG_STORES.features,
-            diskResolution: 12,
-            radius: 35,
-            elevationScale: 2500,
-            getPosition: d => d.geometry.coordinates,
-            getFillColor: d => {
-              if (d.properties.total > 250) {
-                return COLOR_RANGE[0]
-              }
-              if (d.properties.total > 200) {
-                return COLOR_RANGE[1]
-              }
-              if (d.properties.total > 100) {
-                return COLOR_RANGE[2]
-              }
-              if (d.properties.total > 50) {
-                return COLOR_RANGE[3]
-              }
-              if (d.properties.total > 10) {
-                return COLOR_RANGE[4]
-              }
-              return COLOR_RANGE[5]
-            },
-            getElevation: d => {
-              return (d.properties.total / 1000)
-            }
-          }
-        ),
-        'icon-layer'
       )
 
       this.hexagonLayer = new MapboxLayer(
@@ -243,7 +251,8 @@ export default {
           elevationRange: [0, 100],
           elevationScale: 500,
           extruded: true,
-          getPosition: d => d.geometry.coordinates
+          getPosition: d => d.geometry.coordinates,
+          getPolygonOffset: layerIndex => [0, -layerIndex]
         }
       )
 
