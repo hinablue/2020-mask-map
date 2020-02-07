@@ -6,6 +6,11 @@
         <img class="cat-icon" src="./assets/cat.png" width="24" height="24" alt="Cat">
         <span>定位我的位置</span>
       </div>
+      <div class="map-overlay-inner fill-mask" @click.prevent="fillMask">
+        <img class="cat-icon" src="./assets/cat.png" width="24" height="24" alt="Cat">
+        <span v-if="fillMaskToggle">停下來！</span>
+        <span v-else>口罩炫富</span>
+      </div>
     </div>
     <div class="modal fade" id="drugStoreModal" tabindex="-1" role="dialog" aria-labelledby="drugStoreModalTitle" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -105,6 +110,8 @@ export default {
       maskData: [],
       isLoading: true,
       currentZoom: 15,
+      fillMaskToggle: false,
+      fillMaskRender: null,
       drugStore: {
         name: '',
         phone: '',
@@ -116,6 +123,15 @@ export default {
     }
   },
   methods: {
+    fillMask () {
+      if (this.fillMaskToggle) {
+        this.fillMaskToggle = false
+        window.Negi.stop(this.fillMaskRender)
+        return
+      }
+      this.fillMaskToggle = true
+      this.fillMaskRender = window.Negi.start()
+    },
     gotoMyLocation () {
       navigator.geolocation.getCurrentPosition(position => {
         this.currentPosition = [
@@ -348,14 +364,17 @@ body {
   top: 0;
   left: 0;
   padding: 10px;
+  z-index: 9999999;
 }
 
-.goto-my-location {
+.goto-my-location,
+.fill-mask {
   cursor: pointer;
   user-select: none;
 }
 
-.goto-my-location .cat-icon {
+.goto-my-location .cat-icon,
+.fill-mask .cat-icon {
   display: inline-block;
   vertical-align: -6px;
   margin-right: 5px;
