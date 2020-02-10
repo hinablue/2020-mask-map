@@ -60,6 +60,7 @@
       <div class="text-center">
         <img class="cat-icon" src="./assets/cat.png" width="128" height="128" alt="Cat">
         <h3>Loading...</h3>
+        <h5>若地圖無法顯示，表示超出用量(單日 20 萬次請求 QQ)</h5>
       </div>
     </div>
   </div>
